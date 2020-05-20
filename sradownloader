@@ -1,0 +1,42 @@
+#!/bi/apps/python/3.7.3/bin/python
+import sys
+import subprocess
+import os
+
+def download_sample (sample):
+    print (f"Downloading {sample['accession']} into {sample['file_base']}")
+
+    subprocess.run(["/bi/apps/sratoolkit/2.9.6-1/bin/fastq-dump","--split-files","--gzip",sample['accession']], check=True)
+
+    os.rename(f"{sample['accession']}_1.fastq.gz",f"{sample['file_base']}_1.fastq.gz")
+    os.rename(f"{sample['accession']}_2.fastq.gz",f"{sample['file_base']}_2.fastq.gz")
+
+
+def read_samples (sample_file):
+    samples = []
+    with open(sample_file) as fh:
+        for line in fh:
+            if line.startswith("Run"):
+                continue
+
+            sections = line.split("\t")
+            sample_name = sections[-1].strip().replace(" ","_")
+
+            sample = {
+                "accession" : sections[0],
+                "file_base" : f"{sections[0]}_{sample_name}"
+            }
+
+            samples.append(sample)
+    
+    return samples
+
+
+
+def main():
+    samples = read_samples(sys.argv[1])
+    for sample in samples:
+        download_sample(sample)
+
+if __name__ == "__main__":
+    main()
