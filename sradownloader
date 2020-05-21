@@ -4,6 +4,7 @@ import subprocess
 import os
 import csv
 import argparse
+import glob
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
@@ -41,7 +42,16 @@ def download_sample (sample, options):
     if not options.quiet:
         print("Running: "+" ".join(command_options))
 
-    subprocess.run(command_options, check=True)
+#    subprocess.run(command_options, check=True)
+
+    # Now find the files which were created and compress them
+    downloaded_files = glob.glob(options.outdir+"/"+sample['file_base']+"*.fastq")
+
+    for file in downloaded_files:
+        if not options.quiet:
+                print("Compressing "+file)
+
+        subprocess.run(["gzip","-4",file], check=True)
 
 
 def read_samples (options):
