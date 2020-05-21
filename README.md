@@ -72,7 +72,7 @@ Note that if you get an error as soon as the first download starts then you're p
 Reporting Problems / Bugs
 -------------------------
 
-You can report any problems or bugs, or add feature requests in our [https://github.com/s-andrews/sradownloader/issues](issue tracker).  You can also email simon.andrews@babraham.ac.uk.
+You can report any problems or bugs, or add feature requests in our [issue tracker](https://github.com/s-andrews/sradownloader/issues).  You can also email simon.andrews@babraham.ac.uk.
 
 
 
