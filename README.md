@@ -1,4 +1,4 @@
-# sradownloader
+# SRA downloader
 SRAdownloader is a script which takes the annotation table from the SRA run selector tool and uses the sratoolkit to download the fastq files for the selected samples, giving them meaningful names at the same time.  It is designed to make it slightly less painful to get data out of GEO and the SRA.
 
 Installation
@@ -61,6 +61,7 @@ Downloading your own data
 
 SRAdownloader is designed to work with files exported from the SRA run selector.  You can get to this tool from the GEO page by clicking on the link at the bottom.
 
+![GEO link to SRA run selector](https://raw.githubusercontent.com/s-andrews/sradownloader/master/screenshots/geo_selector.png "GEO link to SRA run selector")
 
 Once in the run selector you can either get the data for all samples for that study, you you can use the checkboxes on the table at the bottom to pick just the samples you want.  You then need to download and save the metadata file.  You can either click on the "Metadata" link in the "Total" section to get everything, or the "Metadata" link in the "Selected" section to get only the samples for which you ticked the boxes.  Take the files which is downloaded and save it onto the machine where you installed ```sradownloader```
 
