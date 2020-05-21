@@ -17,9 +17,15 @@ def download_sample (sample, options):
     command_options = [options.fqdump,"--split-files","--threads",options.threads,"--outfile",sample["file_base"]]
     
     # If they're attached to a terminal and they're not being quiet then we'll show progress
+
     if not options.quiet:
         if sys.stdin.isatty():
-            command_options.append("--progress")
+            # NB: NCBI can't spell.  They inadvertently changed --progress to --progres and it's been
+            # like that for a while. We had to add an option to mis-spell the progress option
+            if options.cantspell:
+                command_options.append("--progres")
+            else:
+                command_options.append("--progress")
     
     # If they're not using the current directory as output we'll say where it should go
     if options.outdir != ".":
@@ -28,7 +34,7 @@ def download_sample (sample, options):
 
     
     # Finally add the accession
-    command_options.append(sample['accession')
+    command_options.append(sample['accession'])
     
     command_options = [str(x) for x in command_options]
 
@@ -87,6 +93,7 @@ def read_options():
     parser.add_argument('--outdir', type=str, help="Folder to save data to (default .)", default=".")
     parser.add_argument('--threads', type=int, help="Number of threads (default 1)", default=1)
     parser.add_argument('--fqdump', type=str, help="Path to the fastq dump program (default fasterq-dump)", default="fasterq-dump")
+    parser.add_argument('--cantspell', dest="cantspell", action='store_true', help="Change --progress to --progres because of a bug in some fasterq-dump releases")
     parser.add_argument('runtable', type=str, help="The SraRunTable.txt file from the SRA run selector")
 
     options = parser.parse_args()
