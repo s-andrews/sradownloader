@@ -6,6 +6,9 @@ import csv
 import argparse
 import glob
 
+VERSION = "1.0"
+
+
 # These are the symbols we're going to need to remove
 # from any proposed file names
 invalid_charachters = [" ","/",">","<","|","\"","?","*"]
@@ -42,10 +45,13 @@ def download_sample (sample, options):
     if not options.quiet:
         print("Running: "+" ".join(command_options))
 
-#    subprocess.run(command_options, check=True)
+    subprocess.run(command_options, check=True)
 
     # Now find the files which were created and compress them
     downloaded_files = glob.glob(options.outdir+"/"+sample['file_base']+"*.fastq")
+
+    if len(downloaded_files) == 0:
+        print ("ERROR: Got no files for accession "+sample['accession'], file=sys.stderr)
 
     for file in downloaded_files:
         if not options.quiet:
@@ -100,6 +106,7 @@ def read_options():
     parser = argparse.ArgumentParser(description="Download data from the SRA")
 
     parser.add_argument('--quiet', dest="quiet", action='store_true', default=False, help="Supress all but essential messages")
+    parser.add_argument('--version', action='version', version=f"SRA downloader v{VERSION}")
     parser.add_argument('--outdir', type=str, help="Folder to save data to (default .)", default=".")
     parser.add_argument('--threads', type=int, help="Number of threads (default 1)", default=1)
     parser.add_argument('--fqdump', type=str, help="Path to the fastq dump program (default fasterq-dump)", default="fasterq-dump")
@@ -119,7 +126,7 @@ def read_options():
             print("Found fasterq-dump at "+options.fqdump)
 
     except:
-        print ("ERROR: Couldn't find fasterq-dump at "+options.fqdump, file=sys.stderr)
+        print ("ERROR: Couldn't find fasterq-dump at "+options.fqdump+". Please ensure that sratoolkit is downloaded and that you've run vdb-config", file=sys.stderr)
         sys.exit(1)
 
 
