@@ -65,6 +65,9 @@ SRAdownloader is designed to work with files exported from the SRA run selector.
 
 Once in the run selector you can either get the data for all samples for that study, you you can use the checkboxes on the table at the bottom to pick just the samples you want.  You then need to download and save the metadata file.  You can either click on the "Metadata" link in the "Total" section to get everything, or the "Metadata" link in the "Selected" section to get only the samples for which you ticked the boxes.  Take the files which is downloaded and save it onto the machine where you installed ```sradownloader```
 
+![SRA run selector](https://raw.githubusercontent.com/s-andrews/sradownloader/master/screenshots/sra_selector.png "SRA run selector")
+
+
 Finally you can then run the downloader, passing in the file of metadata as an argument.  You can use the ```--outdir``` option to specify a directory to download into, otherwise the files will come into the current directory.
 
 Note that if you get an error as soon as the first download starts then you're probably using a version of SRAtoolkit where there is a spelling error in one of the program options (they spelled 'progress' as 'progres'), so you will need to add the ```--cantspell``` option to the command to work round this.
