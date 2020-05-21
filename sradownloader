@@ -98,8 +98,36 @@ def read_options():
 
     options = parser.parse_args()
 
-    # Do some sanity checks
-    # TODO: sanity checks
+    # Can we find fasterq-dump
+    if not options.quiet:
+        print("Testing for fasterq-dump at "+options.fqdump)
+
+    try:
+        subprocess.run([options.fqdump,"--version"], check=True, stdout=subprocess.DEVNULL)
+
+        if not options.quiet:
+            print("Found fasterq-dump at "+options.fqdump)
+
+    except:
+        print ("ERROR: Couldn't find fasterq-dump at "+options.fqdump, file=sys.stderr)
+        sys.exit(1)
+
+
+    # Can we find gzip
+    if not options.quiet:
+        print("Testing for gzip in the path")
+
+    try:
+        subprocess.run(["gzip","--version"], check=True, stdout=subprocess.DEVNULL)
+
+        if not options.quiet:
+            print("Found gzip")
+
+    except:
+        print ("ERROR: Couldn't find gzip in the path", file=sys.stderr)
+        sys.exit(1)
+
+
 
 
     return options
