@@ -1,42 +1,108 @@
-#!/bi/apps/python/3.7.3/bin/python
+#!/usr/bin/env python3
 import sys
 import subprocess
 import os
+import csv
+import argparse
 
-def download_sample (sample):
-    print (f"Downloading {sample['accession']} into {sample['file_base']}")
-
-    subprocess.run(["/bi/apps/sratoolkit/2.9.6-1/bin/fastq-dump","--split-files","--gzip",sample['accession']], check=True)
-
-    os.rename(f"{sample['accession']}_1.fastq.gz",f"{sample['file_base']}_1.fastq.gz")
-    os.rename(f"{sample['accession']}_2.fastq.gz",f"{sample['file_base']}_2.fastq.gz")
+# These are the symbols we're going to need to remove
+# from any proposed file names
+invalid_charachters = [" ","/",">","<","|","\"","?","*"]
 
 
-def read_samples (sample_file):
+def download_sample (sample, options):
+    if not options.quiet:
+        print (f"Downloading {sample['accession']} into {sample['file_base']}")
+
+    command_options = [options.fqdump,"--split-files","--threads",options.threads,"--outfile",sample["file_base"]]
+    
+    # If they're attached to a terminal and they're not being quiet then we'll show progress
+    if not options.quiet:
+        if sys.stdin.isatty():
+            command_options.append("--progress")
+    
+    # If they're not using the current directory as output we'll say where it should go
+    if options.outdir != ".":
+        command_options.append("--outdir")
+        command_options.append(options.outdir)
+
+    
+    # Finally add the accession
+    command_options.append(sample['accession')
+    
+    command_options = [str(x) for x in command_options]
+
+    if not options.quiet:
+        print("Running: "+" ".join(command_options))
+
+    subprocess.run(command_options, check=True)
+
+
+def read_samples (options):
+    if not options.quiet:
+        print(f"Reading samples from {options.runtable}")
+
+    sample_file = options.runtable
     samples = []
+    headers = []
+    name_index = 0
     with open(sample_file) as fh:
-        for line in fh:
-            if line.startswith("Run"):
+        csv_fh = csv.reader(fh)
+        for sections in csv_fh:
+            if len(headers) == 0:
+                headers = sections
+                if "source_name" in headers:
+                    name_index = headers.index("source_name")
+                else:
+                    name_index = -1
+                
                 continue
 
-            sections = line.split("\t")
-            sample_name = sections[-1].strip().replace(" ","_")
+            sample_name = ""
+
+            if name_index >= 0:
+                sample_name = sections[name_index].strip()
+                
+                for bad_char in invalid_charachters:
+                    sample_name = sample_name.replace(bad_char,"_")
+
+                sample_name = "_"+sample_name
+
+            if not options.quiet:
+                print (f"Found sample {sections[0]} with basename {sections[0]}{sample_name}")
 
             sample = {
                 "accession" : sections[0],
-                "file_base" : f"{sections[0]}_{sample_name}"
+                "file_base" : sections[0] + sample_name
             }
 
             samples.append(sample)
     
     return samples
 
+def read_options():
+    parser = argparse.ArgumentParser(description="Download data from the SRA")
+
+    parser.add_argument('--quiet', dest="quiet", action='store_true', default=False, help="Supress all but essential messages")
+    parser.add_argument('--outdir', type=str, help="Folder to save data to (default .)", default=".")
+    parser.add_argument('--threads', type=int, help="Number of threads (default 1)", default=1)
+    parser.add_argument('--fqdump', type=str, help="Path to the fastq dump program (default fasterq-dump)", default="fasterq-dump")
+    parser.add_argument('runtable', type=str, help="The SraRunTable.txt file from the SRA run selector")
+
+    options = parser.parse_args()
+
+    # Do some sanity checks
+    # TODO: sanity checks
+
+
+    return options
 
 
 def main():
-    samples = read_samples(sys.argv[1])
+    options = read_options()
+    samples = read_samples(options)
     for sample in samples:
-        download_sample(sample)
+        download_sample(sample,options)
 
 if __name__ == "__main__":
     main()
