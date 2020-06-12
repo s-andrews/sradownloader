@@ -64,10 +64,30 @@ def download_sample (sample, options):
     
     command_options = [str(x) for x in command_options]
 
-    if not options.quiet:
-        print("Running: "+" ".join(command_options))
+    attempt_number = 1
 
-    subprocess.run(command_options, check=True)
+    while (attempt_number <= options.retries):
+        if not options.quiet:
+            print(f"[Attempt {attempt_number}] Running: "+" ".join(command_options)")
+
+        try:
+            subprocess.run(command_options, check=True)
+            break
+
+        except:
+            if attempt_number == options.retries:
+                attempt_number += 1
+                print(f"Sorry SRAtoolkit just isn't having it, giving up on this accession")
+                break
+
+            else:
+                print(f"SRAtoolkit failed us - going around for another try")
+                attempt_number += 1
+                continue
+
+    if attempt_number > options.retries:
+        # This failed so don't try to do anything else with it
+        return
 
     # Now find the files which were created and compress them
     downloaded_files = glob.glob(options.outdir+"/"+sample['file_base']+"*.fastq")
@@ -147,6 +167,7 @@ def read_options():
     parser.add_argument('--version', action='version', version=f"SRA downloader v{VERSION}")
     parser.add_argument('--outdir', type=str, help="Folder to save data to (default .)", default=".")
     parser.add_argument('--threads', type=int, help="Number of threads (default 1)", default=1)
+    parser.add_argument('--retries', type=int, help="Number of times we'll retry a download before giving up (default 10)", default=10)
     parser.add_argument('--fqdump', type=str, help="Path to the fastq dump program (default fasterq-dump)", default="fasterq-dump")
     parser.add_argument('--cantspell', dest="cantspell", action='store_true', help="Change --progress to --progres because of a bug in some fasterq-dump releases")
     parser.add_argument('--nogeo', dest="nogeo", action='store_true', help="Disable sample name lookup from GEO")
