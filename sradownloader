@@ -25,6 +25,8 @@ import os
 import csv
 import argparse
 import glob
+import urllib.request
+import re
 
 VERSION = "1.1.devel"
 
@@ -96,19 +98,35 @@ def read_samples (options):
                 if "source_name" in headers:
                     name_index = headers.index("source_name")
                 else:
-                    name_index = -1
-                
+                    name_index = -1                
                 continue
 
             sample_name = ""
 
-            if name_index >= 0:
-                sample_name = sections[name_index].strip()
-                
-                for bad_char in invalid_charachters:
-                    sample_name = sample_name.replace(bad_char,"_")
+            # See if we need to look up a nice name from GEO (SRA)
+            if not options.nogeo :
+                if not options.quiet:
+                    print(f"Trying to get name for {sections[0]} from GEO - (stop this with --nogeo)")
+                with urllib.request.urlopen(f"https://www.ncbi.nlm.nih.gov/sra/?term={sections[0]}&format=text") as response:
+                    for line in response:
+                        line = line.decode("UTF-8")
+                        if line.startswith("Title:"):
+                            geosections = re.split("[:;] ",line)
 
-                sample_name = "_"+sample_name
+                            sample_name = "_".join(geosections[1:])
+                            break
+
+            if sample_name == "":
+                if name_index >= 0:
+                    sample_name = sections[name_index].strip()
+
+
+            for bad_char in invalid_charachters:
+                sample_name = sample_name.replace(bad_char,"_")
+
+            sample_name = "_"+sample_name
+
+
 
             if not options.quiet:
                 print (f"Found sample {sections[0]} with basename {sections[0]}{sample_name}")
@@ -131,6 +149,7 @@ def read_options():
     parser.add_argument('--threads', type=int, help="Number of threads (default 1)", default=1)
     parser.add_argument('--fqdump', type=str, help="Path to the fastq dump program (default fasterq-dump)", default="fasterq-dump")
     parser.add_argument('--cantspell', dest="cantspell", action='store_true', help="Change --progress to --progres because of a bug in some fasterq-dump releases")
+    parser.add_argument('--nogeo', dest="nogeo", action='store_true', help="Disable sample name lookup from GEO")
     parser.add_argument('runtable', type=str, help="The SraRunTable.txt file from the SRA run selector")
 
     options = parser.parse_args()
