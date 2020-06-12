@@ -26,7 +26,7 @@ import csv
 import argparse
 import glob
 
-VERSION = "1.0"
+VERSION = "1.1.devel"
 
 
 # These are the symbols we're going to need to remove
