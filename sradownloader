@@ -38,7 +38,7 @@ invalid_charachters = [" ","/",">","<","|","\"","?","*"]
 
 def download_sample (sample, options):
     if not options.quiet:
-        print (f"Downloading {sample['accession']} into {sample['file_base']}")
+        print (f"Downloading {sample['accession']} into {sample['file_base']}", flush=True)
 
     command_options = [options.fqdump,"--split-files","--threads",options.threads,"--outfile",sample["file_base"]]
     
@@ -68,7 +68,7 @@ def download_sample (sample, options):
 
     while (attempt_number <= options.retries):
         if not options.quiet:
-            print(f"[Attempt {attempt_number}] Running: "+" ".join(command_options)")
+            print(f"[Attempt {attempt_number}] Running: "+" ".join(command_options), flush=True)
 
         try:
             subprocess.run(command_options, check=True)
@@ -77,11 +77,11 @@ def download_sample (sample, options):
         except:
             if attempt_number == options.retries:
                 attempt_number += 1
-                print(f"Sorry SRAtoolkit just isn't having it, giving up on this accession")
+                print(f"Sorry SRAtoolkit just isn't having it, giving up on this accession", flush=True)
                 break
 
             else:
-                print(f"SRAtoolkit failed us - going around for another try")
+                print(f"SRAtoolkit failed us - going around for another try", flush=True)
                 attempt_number += 1
                 continue
 
@@ -93,18 +93,18 @@ def download_sample (sample, options):
     downloaded_files = glob.glob(options.outdir+"/"+sample['file_base']+"*.fastq")
 
     if len(downloaded_files) == 0:
-        print ("ERROR: Got no files for accession "+sample['accession'], file=sys.stderr)
+        print ("ERROR: Got no files for accession "+sample['accession'], file=sys.stderr, flush=True)
 
     for file in downloaded_files:
         if not options.quiet:
-                print("Compressing "+file)
+                print("Compressing "+file, flush=True)
 
         subprocess.run(["gzip","-4",file], check=True)
 
 
 def read_samples (options):
     if not options.quiet:
-        print(f"Reading samples from {options.runtable}")
+        print(f"Reading samples from {options.runtable}", flush=True)
 
     sample_file = options.runtable
     samples = []
@@ -126,7 +126,7 @@ def read_samples (options):
             # See if we need to look up a nice name from GEO (SRA)
             if not options.nogeo :
                 if not options.quiet:
-                    print(f"Trying to get name for {sections[0]} from GEO - (stop this with --nogeo)")
+                    print(f"Trying to get name for {sections[0]} from GEO - (stop this with --nogeo)", flush=True)
                 with urllib.request.urlopen(f"https://www.ncbi.nlm.nih.gov/sra/?term={sections[0]}&format=text") as response:
                     for line in response:
                         line = line.decode("UTF-8")
@@ -149,7 +149,7 @@ def read_samples (options):
 
 
             if not options.quiet:
-                print (f"Found sample {sections[0]} with basename {sections[0]}{sample_name}")
+                print (f"Found sample {sections[0]} with basename {sections[0]}{sample_name}", flush=True)
 
             sample = {
                 "accession" : sections[0],
@@ -177,31 +177,31 @@ def read_options():
 
     # Can we find fasterq-dump
     if not options.quiet:
-        print("Testing for fasterq-dump at "+options.fqdump)
+        print("Testing for fasterq-dump at "+options.fqdump, flush=True)
 
     try:
         subprocess.run([options.fqdump,"--version"], check=True, stdout=subprocess.DEVNULL)
 
         if not options.quiet:
-            print("Found fasterq-dump at "+options.fqdump)
+            print("Found fasterq-dump at "+options.fqdump, flush=True)
 
     except:
-        print ("ERROR: Couldn't find fasterq-dump at "+options.fqdump+". Please ensure that sratoolkit is downloaded and that you've run vdb-config", file=sys.stderr)
+        print ("ERROR: Couldn't find fasterq-dump at "+options.fqdump+". Please ensure that sratoolkit is downloaded and that you've run vdb-config", file=sys.stderr, flush=True)
         sys.exit(1)
 
 
     # Can we find gzip
     if not options.quiet:
-        print("Testing for gzip in the path")
+        print("Testing for gzip in the path", flush=True)
 
     try:
         subprocess.run(["gzip","--version"], check=True, stdout=subprocess.DEVNULL)
 
         if not options.quiet:
-            print("Found gzip")
+            print("Found gzip", flush=True)
 
     except:
-        print ("ERROR: Couldn't find gzip in the path", file=sys.stderr)
+        print ("ERROR: Couldn't find gzip in the path", file=sys.stderr, flush=True)
         sys.exit(1)
 
 
