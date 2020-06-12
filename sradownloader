@@ -70,11 +70,10 @@ def download_sample (sample, options):
         if not options.quiet:
             print(f"[Attempt {attempt_number}] Running: "+" ".join(command_options), flush=True)
 
-        try:
-            subprocess.run(command_options, check=True)
-            break
+        result = subprocess.run(command_options, check=True)
+        
 
-        except:
+        if result.returncode != 0:
             if attempt_number == options.retries:
                 attempt_number += 1
                 print(f"Sorry SRAtoolkit just isn't having it, giving up on this accession", flush=True)
