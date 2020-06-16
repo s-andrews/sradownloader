@@ -70,8 +70,8 @@ def download_sample (sample, options):
         if not options.quiet:
             print(f"[Attempt {attempt_number}] Running: "+" ".join(command_options), flush=True)
 
-        result = subprocess.run(command_options, check=True)
-        
+#        result = subprocess.run(command_options, check=False)
+        result = subprocess.run(["/bin/false"], check=False)
 
         if result.returncode != 0:
             if attempt_number == options.retries:
