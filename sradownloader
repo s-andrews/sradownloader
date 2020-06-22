@@ -83,6 +83,10 @@ def download_sample (sample, options):
                 attempt_number += 1
                 continue
 
+        else:
+            # Amazingly it worked
+            break
+
     if attempt_number > options.retries:
         # This failed so don't try to do anything else with it
         return
