@@ -40,7 +40,7 @@ def download_sample (sample, options):
     if not options.quiet:
         print (f"Downloading {sample['accession']} into {sample['file_base']}", flush=True)
 
-    command_options = [options.fqdump,"--split-files","--threads",options.threads,"--outfile",sample["file_base"]]
+    command_options = [options.fqdump,"--split-files","--threads",options.threads,"--outfile",sample["file_base"]+".fastq"]
     
     # If they're attached to a terminal and they're not being quiet then we'll show progress
 
@@ -133,6 +133,7 @@ def read_samples (options):
                     for line in response:
                         line = line.decode("UTF-8")
                         if line.startswith("Title:"):
+                            line = line.strip()
                             geosections = re.split("[:;] ",line)
 
                             sample_name = "_".join(geosections[1:])
