@@ -28,7 +28,7 @@ import glob
 import urllib.request
 import re
 
-VERSION = "1.1.devel"
+VERSION = "2.1"
 
 
 # These are the symbols we're going to need to remove
