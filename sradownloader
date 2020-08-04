@@ -28,12 +28,11 @@ import glob
 import urllib.request
 import re
 
-VERSION = "2.1"
-
+VERSION = "2.2"
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
-invalid_charachters = [" ","/",">","<","|","\"","?","*"]
+invalid_characters = [" ","/",">","<","|","\"","?","*","(",")","\\","[","]","{","}","!"]
 
 
 def download_sample (sample, options):
@@ -144,12 +143,15 @@ def read_samples (options):
                     sample_name = sections[name_index].strip()
 
 
-            for bad_char in invalid_charachters:
+            for bad_char in invalid_characters:
                 sample_name = sample_name.replace(bad_char,"_")
 
+            # Add a leading underscore to separate it from the accession
             sample_name = "_"+sample_name
 
-
+            # Clean up any runs of underscores
+            while "__" in sample_name:
+                sample_name = sample_name.replace("__","_")
 
             if not options.quiet:
                 print (f"Found sample {sections[0]} with basename {sections[0]}{sample_name}", flush=True)
