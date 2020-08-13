@@ -1,14 +1,14 @@
 # SRA downloader
-SRAdownloader is a script which takes the annotation table from the SRA run selector tool and uses the sratoolkit to download the fastq files for the selected samples, giving them meaningful names at the same time.  It is designed to make it slightly less painful to get data out of GEO and the SRA.
+SRAdownloader is a program which takes the annotation table from the SRA run selector tool and retrives the raw fastq files from either the ENA or NCBI databases for the selected samples, giving them meaningful names at the same time.  It is designed to make it slightly less painful to get data out of GEO and the SRA.
 
 Installation
 ------------
 
 ### System requirements
-This script needs to be run on a unix-like operating system (eg Linux).  It requires the presence of python3 and gzip on the system it's running on.  Be aware that the data this script downloads can be very large (many tens of gigabytes) so make sure you have enough space to accommodate them.
+This script needs to be run on a unix-like operating system (eg Linux).  It requires the presence of python3 on the system it's running on.  Be aware that the data this script downloads can be very large (many tens of gigabytes) so make sure you have enough space to accommodate them.
 
 ### Install the SRA toolkit
-This script uses the SRA toolkit to actually interact with the SRA so you'll need to install and configure this first.
+If you want to be able to download from the NCBI database then sradownloader will use the SRA toolkit to actually interact with the SRA so you'll need to install and configure this first.  If you're happy to just get data from ENA (which may not work for a small subset of studies), then you can skip this step.
 
 Instructions for installing and configuring the toolkit can be found on their [Github Pages Site](https://ncbi.github.io/sra-tools/install_config.html). 
 
@@ -35,26 +35,28 @@ We ship an example config file called ```SraRunTable.txt``` in the installation 
 
 ```sradownloader --outdir TEST_DOWNLOAD SraRunTable.txt```
 
-..and you should see the program download the example data into a folder called ```TEST_DOWNLOAD```.  If the download immediately fails with an error which looks like:
+..and you should see the program download the example data into a folder called ```TEST_DOWNLOAD```.  The program should finish with a summary which looks like:
 
 ```
-Running: fasterq-dump --split-files --threads 1 --outfile SRR5413015_Spt3_ChEC-seq --progress --outdir GEO_Download SRR5413015
-unrecognized option: '--progress'
-Traceback (most recent call last):
-  File "./sradownloader", line 156, in <module>
-    main()
-  File "./sradownloader", line 153, in main
-    download_sample(sample,options)
-  File "./sradownloader", line 45, in download_sample
-    subprocess.run(command_options, check=True)
-  File "/bi/apps/python/3.7.3/lib/python3.7/subprocess.py", line 487, in run
-    output=stdout, stderr=stderr)
-subprocess.CalledProcessError: Command '['fasterq-dump', '--split-files', '--threads', '1', '--outfile', 'SRR5413015_Spt3_ChEC-seq', '--progress', '--outdir', 'GEO_Download', 'SRR5413015']' returned non-zero exit status 64.
+All done!
+
+RESULTS
+-------
+SRR5413015:     SUCCEEDED
+SRR5413016:     SUCCEEDED
 ```
 
-Then you're using a version of SRAtoolkit where there is a spelling error in one of the program options (they spelled 'progress' as 'progres'), so you will need to run:
+..and you should see the following files:
 
-```sradownloader --outdir TEST_DOWNLOAD --cantspell SraRunTable.txt```
+```
+$ ls -lh TEST_DOWNLOAD/
+total 553M
+-rw-rw-r-- 1 andrews andrews 2.7M Aug 13 16:28 SRR5413015_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_1.fastq.gz
+-rw-rw-r-- 1 andrews andrews  68M Aug 13 16:29 SRR5413015_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_2.fastq.gz
+-rw-rw-r-- 1 andrews andrews 209M Aug 13 16:30 SRR5413016_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_1.fastq.gz
+-rw-rw-r-- 1 andrews andrews 211M Aug 13 16:32 SRR5413016_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_2.fastq.gz
+```
+
 
 Downloading your own data
 -------------------------
@@ -69,8 +71,6 @@ Once in the run selector you can either get the data for all samples for that st
 
 
 Finally you can then run the downloader, passing in the file of metadata as an argument.  You can use the ```--outdir``` option to specify a directory to download into, otherwise the files will come into the current directory.
-
-Note that if you get an error as soon as the first download starts then you're probably using a version of SRAtoolkit where there is a spelling error in one of the program options (they spelled 'progress' as 'progres'), so you will need to add the ```--cantspell``` option to the command to work round this.
 
 Reporting Problems / Bugs
 -------------------------
