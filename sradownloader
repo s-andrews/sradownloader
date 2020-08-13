@@ -27,17 +27,57 @@ import argparse
 import glob
 import urllib.request
 import re
+import shutil
 
-VERSION = "2.2"
+VERSION = "3.0.devel"
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
 invalid_characters = [" ","/",">","<","|","\"","?","*","(",")","\\","[","]","{","}","!"]
 
 
-def download_sample (sample, options):
+def download_sample_ena (sample, options):
     if not options.quiet:
-        print (f"Downloading {sample['accession']} into {sample['file_base']}", flush=True)
+        print (f"[ENA] Downloading {sample['accession']} into {sample['file_base']}", flush=True)
+
+    # Get the FTP locations for the sample
+    ena_rest_url = f"https://www.ebi.ac.uk/ena/portal/api/filereport?accession={sample['accession']}&result=read_run&fields=run_accession,fastq_ftp"
+
+    print(f"URL is '{ena_rest_url}'")
+
+    with urllib.request.urlopen(ena_rest_url) as response:
+        for line in response:
+            line = line.decode("UTF-8").strip()
+            if line.startswith("SRR"):
+                sections = line.split("\t")
+
+                if len(sections) != 2:
+                    raise IOError(f"No ENA fastq files found for accession {sample['accession']}")
+
+                url_list = sections[1].split(";")
+                break
+
+    for url in url_list:
+
+        # Work out the output file name.  We're assuming there's never
+        # going to be more than 2 files per sample
+        if url.endswith("_2.fastq.gz"):
+            outfile=sample['file_base'] + "_2.fastq.gz"
+
+        else:
+            outfile=sample['file_base'] + "_1.fastq.gz"
+
+
+        if not options.quiet:
+            print (f"[ENA] Downloading {url} into {outfile}", flush=True)
+        
+        with urllib.request.urlopen("http://"+url) as response, open(outfile, 'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
+
+
+def download_sample_ncbi (sample, options):
+    if not options.quiet:
+        print (f"[NCBI] Downloading {sample['accession']} into {sample['file_base']}", flush=True)
 
     command_options = [options.fqdump,"--split-files","--threads",options.threads,"--outfile",sample["file_base"]+".fastq"]
     
@@ -45,19 +85,13 @@ def download_sample (sample, options):
 
     if not options.quiet:
         if sys.stdin.isatty():
-            # NB: NCBI can't spell.  They inadvertently changed --progress to --progres and it's been
-            # like that for a while. We had to add an option to mis-spell the progress option
-            if options.cantspell:
-                command_options.append("--progres")
-            else:
-                command_options.append("--progress")
+            command_options.append("--progress")
     
     # If they're not using the current directory as output we'll say where it should go
     if options.outdir != ".":
         command_options.append("--outdir")
         command_options.append(options.outdir)
 
-    
     # Finally add the accession
     command_options.append(sample['accession'])
     
@@ -174,7 +208,6 @@ def read_options():
     parser.add_argument('--threads', type=int, help="Number of threads (default 1)", default=1)
     parser.add_argument('--retries', type=int, help="Number of times we'll retry a download before giving up (default 5)", default=5)
     parser.add_argument('--fqdump', type=str, help="Path to the fastq dump program (default fasterq-dump)", default="fasterq-dump")
-    parser.add_argument('--cantspell', dest="cantspell", action='store_true', help="Change --progress to --progres because of a bug in some fasterq-dump releases")
     parser.add_argument('--nogeo', dest="nogeo", action='store_true', help="Disable sample name lookup from GEO")
     parser.add_argument('runtable', type=str, help="The SraRunTable.txt file from the SRA run selector")
 
@@ -219,7 +252,12 @@ def main():
     options = read_options()
     samples = read_samples(options)
     for sample in samples:
-        download_sample(sample,options)
+        try:
+            download_sample_ena(sample,options)
+
+        except Exception as ex:
+            print(f"Failed to download via ENA: {ex} trying NCBI instead", file=sys.stderr, flush=True)
+            download_sample_ncbi(sample, options)
 
 if __name__ == "__main__":
     main()
