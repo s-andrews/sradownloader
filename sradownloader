@@ -177,7 +177,7 @@ def read_samples (options):
             # See if we need to look up a nice name from GEO (SRA)
             if not options.nogeo :
                 if not options.quiet:
-                    print(f"Trying to get name for {sections[0]} from GEO - (stop this with --nogeo)", flush=True)
+                    print(f"Trying to get name for {sections[0]} from GEO", flush=True)
                 with urllib.request.urlopen(f"https://www.ncbi.nlm.nih.gov/sra/?term={sections[0]}&format=text") as response:
                     for line in response:
                         line = line.decode("UTF-8")
