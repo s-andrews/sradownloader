@@ -125,7 +125,7 @@ def download_sample_ncbi (sample, options):
     downloaded_files = glob.glob(options.outdir+"/"+sample['file_base']+"*.fastq")
 
     if len(downloaded_files) == 0:
-        raise IOError(f"[NCBI] Got no files for accession {sample['accession']}" file=sys.stderr, flush=True)
+        raise IOError(f"[NCBI] Got no files for accession {sample['accession']}")
 
     for file in downloaded_files:
         if not options.quiet:
