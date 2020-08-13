@@ -108,8 +108,7 @@ def download_sample_ncbi (sample, options):
         if result.returncode != 0:
             if attempt_number == options.retries:
                 attempt_number += 1
-                print(f"Sorry SRAtoolkit just isn't having it, giving up on this accession", flush=True)
-                break
+                raise IOError(f"Sorry SRAtoolkit just isn't having it, giving up on {sample['accession']}")
 
             else:
                 print(f"SRAtoolkit failed us - going around for another try", flush=True)
@@ -257,20 +256,34 @@ def read_options():
 def main():
     options = read_options()
     samples = read_samples(options)
+
+    results = {}
+
     for sample in samples:
         try:
             download_sample_ena(sample,options)
+            results[sample['accession']] = "SUCCEEDED"
 
         except Exception as ex:
             if options.noncbi:
-               print(f"WARNING: Failed to download via ENA: {ex}. Can't try NCBI - giving up - sorry.", file=sys.stderr, flush=True)
+                print(f"WARNING: Failed to download via ENA: {ex}. Can't try NCBI - giving up - sorry.", file=sys.stderr, flush=True)
+                results[sample['accession']] = "FAILED"
+
 
             else:
                 print(f"WARNING: Failed to download via ENA: {ex} trying NCBI instead", file=sys.stderr, flush=True)
-                download_sample_ncbi(sample, options)
+                try:
+                    download_sample_ncbi(sample, options)
+                    results[sample['accession']] = "SUCCEEDED"
+                except Exception as ex2:
+                    print(f"WARNING: Failed to download via NCBI: {ex2}. Giving up - sorry.", file=sys.stderr, flush=True)
+                    results[sample['accession']] = "FAILED"
+
     
     if not options.quiet:
-        print(f"\nAll done!", flush=True)
+        print(f"\nAll done!\n\nRESULTS\n-------", flush=True)
+        for accession in sorted(results.keys()):
+            print(f"{accession}:\t{results[accession]}", flush=True)
 
 if __name__ == "__main__":
     main()
