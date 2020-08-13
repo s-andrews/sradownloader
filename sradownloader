@@ -209,40 +209,46 @@ def read_options():
     parser.add_argument('--retries', type=int, help="Number of times we'll retry a download before giving up (default 5)", default=5)
     parser.add_argument('--fqdump', type=str, help="Path to the fastq dump program (default fasterq-dump)", default="fasterq-dump")
     parser.add_argument('--nogeo', dest="nogeo", action='store_true', help="Disable sample name lookup from GEO")
+    parser.add_argument('--noena', dest="noena", action='store_true', help="Don't try downloading from ENA")
+    parser.add_argument('--noncbi', dest="noncbi", action='store_true', help="Don't try downloading from NBCI")
     parser.add_argument('runtable', type=str, help="The SraRunTable.txt file from the SRA run selector")
 
     options = parser.parse_args()
 
-    # Can we find fasterq-dump
-    if not options.quiet:
-        print("Testing for fasterq-dump at "+options.fqdump, flush=True)
 
-    try:
-        subprocess.run([options.fqdump,"--version"], check=True, stdout=subprocess.DEVNULL)
-
+    if not options.noncbi:
+        # Can we find fasterq-dump
         if not options.quiet:
-            print("Found fasterq-dump at "+options.fqdump, flush=True)
+            print("Testing for fasterq-dump at "+options.fqdump, flush=True)
 
-    except:
-        print ("ERROR: Couldn't find fasterq-dump at "+options.fqdump+". Please ensure that sratoolkit is downloaded and that you've run vdb-config", file=sys.stderr, flush=True)
-        sys.exit(1)
+        try:
+            subprocess.run([options.fqdump,"--version"], check=True, stdout=subprocess.DEVNULL)
 
+            if not options.quiet:
+                print("Found fasterq-dump at "+options.fqdump, flush=True)
 
-    # Can we find gzip
-    if not options.quiet:
-        print("Testing for gzip in the path", flush=True)
+        except:
+            print ("WARNING: Couldn't find fasterq-dump at "+options.fqdump+". Please ensure that sratoolkit is downloaded and that you've run vdb-config if you want to download from NCBI", file=sys.stderr, flush=True)
+            options.noncbi = True
 
-    try:
-        subprocess.run(["gzip","--version"], check=True, stdout=subprocess.DEVNULL)
-
+        # Can we find gzip
         if not options.quiet:
-            print("Found gzip", flush=True)
+            print("Testing for gzip in the path", flush=True)
 
-    except:
-        print ("ERROR: Couldn't find gzip in the path", file=sys.stderr, flush=True)
+        try:
+            subprocess.run(["gzip","--version"], check=True, stdout=subprocess.DEVNULL)
+
+            if not options.quiet:
+                print("Found gzip", flush=True)
+
+        except:
+            print ("WARNING: Couldn't find gzip in the path - can't download from NCBI without this.", file=sys.stderr, flush=True)
+            options.noncbi = True
+
+
+    if options.noncbi and options.noena:
+        print ("ERROR: Both NCBI and ENA download options are unavailable.  Giving up", file=sys.stderr, flush=True)
         sys.exit(1)
-
-
 
 
     return options
@@ -256,8 +262,15 @@ def main():
             download_sample_ena(sample,options)
 
         except Exception as ex:
-            print(f"Failed to download via ENA: {ex} trying NCBI instead", file=sys.stderr, flush=True)
-            download_sample_ncbi(sample, options)
+            if options.noncbi:
+               print(f"WARNING: Failed to download via ENA: {ex}. Can't try NCBI - giving up - sorry.", file=sys.stderr, flush=True)
+
+            else:
+                print(f"WARNING: Failed to download via ENA: {ex} trying NCBI instead", file=sys.stderr, flush=True)
+                download_sample_ncbi(sample, options)
+    
+    if not options.quiet:
+        print(f"\nAll done!", flush=True)
 
 if __name__ == "__main__":
     main()
