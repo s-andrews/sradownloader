@@ -29,7 +29,7 @@ import urllib.request
 import re
 import shutil
 
-VERSION = "3.0.devel"
+VERSION = "3.0"
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
@@ -43,8 +43,6 @@ def download_sample_ena (sample, options):
     # Get the FTP locations for the sample
     ena_rest_url = f"https://www.ebi.ac.uk/ena/portal/api/filereport?accession={sample['accession']}&result=read_run&fields=run_accession,fastq_ftp"
 
-    print(f"URL is '{ena_rest_url}'")
-
     with urllib.request.urlopen(ena_rest_url) as response:
         for line in response:
             line = line.decode("UTF-8").strip()
@@ -52,7 +50,7 @@ def download_sample_ena (sample, options):
                 sections = line.split("\t")
 
                 if len(sections) != 2:
-                    raise IOError(f"No ENA fastq files found for accession {sample['accession']}")
+                    raise IOError(f"[ENA] No ENA fastq files found for accession {sample['accession']}")
 
                 url_list = sections[1].split(";")
                 break
@@ -101,17 +99,17 @@ def download_sample_ncbi (sample, options):
 
     while (attempt_number <= options.retries):
         if not options.quiet:
-            print(f"[Attempt {attempt_number}] Running: "+" ".join(command_options), flush=True)
+            print(f"[NCBI Attempt {attempt_number}] Running: "+" ".join(command_options), flush=True)
 
         result = subprocess.run(command_options, check=False)
 
         if result.returncode != 0:
             if attempt_number == options.retries:
                 attempt_number += 1
-                raise IOError(f"Sorry SRAtoolkit just isn't having it, giving up on {sample['accession']}")
+                raise IOError(f"[NCBI] Sorry SRAtoolkit just isn't having it, giving up on {sample['accession']}")
 
             else:
-                print(f"SRAtoolkit failed us - going around for another try", flush=True)
+                print(f"[NCBI] SRAtoolkit failed us - going around for another try", flush=True)
                 attempt_number += 1
                 continue
 
@@ -127,7 +125,7 @@ def download_sample_ncbi (sample, options):
     downloaded_files = glob.glob(options.outdir+"/"+sample['file_base']+"*.fastq")
 
     if len(downloaded_files) == 0:
-        print ("ERROR: Got no files for accession "+sample['accession'], file=sys.stderr, flush=True)
+        raise IOError(f"[NCBI] Got no files for accession {sample['accession']}" file=sys.stderr, flush=True)
 
     for file in downloaded_files:
         if not options.quiet:
