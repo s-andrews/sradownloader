@@ -65,12 +65,31 @@ def download_sample_ena (sample, options):
         else:
             outfile=sample['file_base'] + "_1.fastq.gz"
 
+        if options.outdir != ".":
+            outfile = f"{options.outdir}/{outfile}"
 
-        if not options.quiet:
-            print (f"[ENA] Downloading {url} into {outfile}", flush=True)
+        attempt_number = 1
+
+        while (attempt_number <= options.retries):
+            if not options.quiet:
+                print (f"[ENA Attempt {attempt_number}] Downloading {url} into {outfile}", flush=True)
         
-        with urllib.request.urlopen("http://"+url) as response, open(outfile, 'wb') as out_file:
-            shutil.copyfileobj(response, out_file)
+            try:
+                with urllib.request.urlopen("http://"+url) as response, open(outfile, 'wb') as out_file:
+                    shutil.copyfileobj(response, out_file)
+
+            except Exception:
+                if attempt_number == options.retries:
+                    attempt_number += 1
+                    raise IOError(f"[ENA] Download repeatedly failed for {sample['accession']} - giving up")
+
+                else:
+                    print(f"[ENA] Download failed for {sample['accession']} - going around for another try", flush=True)
+                    attempt_number += 1
+                    continue
+
+            # It worked
+            break
 
 
 def download_sample_ncbi (sample, options):
@@ -246,6 +265,10 @@ def read_options():
     if options.noncbi and options.noena:
         print ("ERROR: Both NCBI and ENA download options are unavailable.  Giving up", file=sys.stderr, flush=True)
         sys.exit(1)
+
+    # Create the output directory if it's not there already
+    if not os.path.isdir(options.outdir):
+        os.makedirs(options.outdir)
 
 
     return options
