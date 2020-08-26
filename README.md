@@ -1,4 +1,5 @@
-# SRA downloader
+![SRA Downloader](https://raw.githubusercontent.com/s-andrews/sradownloader/master/logo/sradownloader.png)
+
 SRAdownloader is a program which takes the annotation table from the SRA run selector tool and retrives the raw fastq files from either the ENA or NCBI databases for the selected samples, giving them meaningful names at the same time.  It is designed to make it slightly less painful to get data out of GEO and the SRA.
 
 Installation
