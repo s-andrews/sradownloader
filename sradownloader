@@ -282,6 +282,8 @@ def main():
 
     for sample in samples:
         try:
+            if options.noena:
+                raise Exception("ENA disabled with --noena, not trying that.")
             download_sample_ena(sample,options)
             results[sample['accession']] = "SUCCEEDED"
 
