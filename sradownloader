@@ -30,7 +30,7 @@ import re
 import shutil
 from ftplib import FTP
 
-VERSION = "3.2"
+VERSION = "3.3"
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
