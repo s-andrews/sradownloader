@@ -45,9 +45,18 @@ def download_sample_ena (sample, options):
     ena_rest_url = f"https://www.ebi.ac.uk/ena/portal/api/filereport?accession={sample['accession']}&result=read_run&fields=run_accession,fastq_ftp"
 
     with urllib.request.urlopen(ena_rest_url) as response:
+        if response.getcode() != 200:
+            raise IOError(f"[ENA] Got error code {response.getcode()} from ENA REST for accession {sample['accession']}")
+
+        url_list = []
+
+        found_accession_line = False
+
         for line in response:
             line = line.decode("UTF-8").strip()
+            print(line)
             if line.startswith("SRR"):
+                found_accession_line = True
                 sections = line.split("\t")
 
                 if len(sections) != 2:
@@ -55,6 +64,10 @@ def download_sample_ena (sample, options):
 
                 url_list = sections[1].split(";")
                 break
+
+        if not found_accession_line:
+            raise IOError(f"[ENA] Found no accession in response from ENA REST for accession {sample['accession']}")
+
 
     for url in url_list:
 
