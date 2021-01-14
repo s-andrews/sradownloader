@@ -237,6 +237,8 @@ def read_samples (options):
                 if len(sections) == 0:
                     continue
 
+                sections[0] = sections[0].strip()
+
                 # The first line should be the headers. We'll check for the name
                 # so we don't inadvertently skip a data line if the header is missing
                 if len(headers) == 0 and sections[0] == "Run":
