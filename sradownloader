@@ -224,7 +224,11 @@ def read_samples (options):
     try:
         with open(sample_file) as fh:
             csv_fh = csv.reader(fh)
+            name_index = -1
             for sections in csv_fh:
+                # Skip blank lines
+                if len(sections) == 0:
+                    continue
 
                 # The first line should be the headers. We'll check for the name
                 # so we don't inadvertently skip a data line if the header is missing
@@ -232,8 +236,7 @@ def read_samples (options):
                     headers = sections
                     if "source_name" in headers:
                         name_index = headers.index("source_name")
-                    else:
-                        name_index = -1                
+
                     continue
 
                 sample_name = ""
