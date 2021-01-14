@@ -30,6 +30,7 @@ import re
 import shutil
 from ftplib import FTP
 
+
 VERSION = "3.3"
 
 # These are the symbols we're going to need to remove
@@ -109,6 +110,12 @@ def download_sample_ena (sample, options):
                     ftp.retrbinary("RETR "+file,ftp_out.write)
                 
                 ftp.quit()
+
+                # Check that the file we downloaded had a non-zero size
+                if os.stat(outfile.st_size == 0):
+                    # It thinks it worked, but nothing was downloaded
+                    os.unlink(outfile)
+                    raise IOError("Received zero sized file")
 
             except Exception as ex:
                 print(ex)
