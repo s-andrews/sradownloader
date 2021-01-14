@@ -112,7 +112,7 @@ def download_sample_ena (sample, options):
                 ftp.quit()
 
                 # Check that the file we downloaded had a non-zero size
-                if os.stat(outfile.st_size == 0):
+                if os.stat(outfile).st_size == 0:
                     # It thinks it worked, but nothing was downloaded
                     os.unlink(outfile)
                     raise IOError("Received zero sized file")
