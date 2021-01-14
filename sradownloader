@@ -186,6 +186,25 @@ def download_sample_ncbi (sample, options):
         subprocess.run(["gzip","-4",file], check=True)
 
 
+def get_geo_name (srr_number, options):
+    sample_name = ""
+
+    if not options.quiet:
+        print(f"Trying to get name for {srr_number} from GEO", flush=True)
+
+    with urllib.request.urlopen(f"https://www.ncbi.nlm.nih.gov/sra/?term={srr_number}&format=text") as response:
+        for line in response:
+            line = line.decode("UTF-8")
+            if line.startswith("Title:"):
+                line = line.strip()
+                geosections = re.split("[:;] ",line)
+
+                sample_name = "_".join(geosections[1:])
+                break
+
+    return sample_name
+
+
 def read_samples (options):
     if not options.quiet:
         print(f"Reading samples from {options.runtable}", flush=True)
@@ -194,65 +213,81 @@ def read_samples (options):
     samples = []
     headers = []
     name_index = 0
-    with open(sample_file) as fh:
-        csv_fh = csv.reader(fh)
-        for sections in csv_fh:
 
-            # The first line should be the headers. We'll check for the name
-            # so we don't inadvertently skip a data line if the header is missing
-            if len(headers) == 0 and sections[0] == "Run":
-                headers = sections
-                if "source_name" in headers:
-                    name_index = headers.index("source_name")
-                else:
-                    name_index = -1                
-                continue
+    # The sample_file might be one of three things
+    # 1. An SRA RunTable file
+    # 2. A simple file of SRR accessions
+    # 3. An SRR accession (not a file name)
+    # 
+    # We need to account for all of these
 
-            sample_name = ""
+    try:
+        with open(sample_file) as fh:
+            csv_fh = csv.reader(fh)
+            for sections in csv_fh:
 
-            # Check to see if there's another set of headers in the middle of the file
-            if sections[0] == "Run":
-                continue
+                # The first line should be the headers. We'll check for the name
+                # so we don't inadvertently skip a data line if the header is missing
+                if len(headers) == 0 and sections[0] == "Run":
+                    headers = sections
+                    if "source_name" in headers:
+                        name_index = headers.index("source_name")
+                    else:
+                        name_index = -1                
+                    continue
 
-            # See if we need to look up a nice name from GEO (SRA)
-            if not options.nogeo :
+                sample_name = ""
+
+                # Check to see if there's another set of headers in the middle of the file
+                if sections[0] == "Run":
+                    continue
+
+                # See if we need to look up a nice name from GEO (SRA)
+                if not options.nogeo :
+                    sample_name = get_geo_name(sections[0], options)
+
+                if sample_name == "":
+                    if name_index >= 0:
+                        sample_name = sections[name_index].strip()
+
+                for bad_char in invalid_characters:
+                    sample_name = sample_name.replace(bad_char,"_")
+
+                # Add a leading underscore to separate it from the accession
+                sample_name = "_"+sample_name
+
+                # Clean up any runs of underscores
+                while "__" in sample_name:
+                    sample_name = sample_name.replace("__","_")
+
                 if not options.quiet:
-                    print(f"Trying to get name for {sections[0]} from GEO", flush=True)
-                with urllib.request.urlopen(f"https://www.ncbi.nlm.nih.gov/sra/?term={sections[0]}&format=text") as response:
-                    for line in response:
-                        line = line.decode("UTF-8")
-                        if line.startswith("Title:"):
-                            line = line.strip()
-                            geosections = re.split("[:;] ",line)
+                    print (f"Found sample {sections[0]} with basename {sections[0]}{sample_name}", flush=True)
 
-                            sample_name = "_".join(geosections[1:])
-                            break
+                sample = {
+                    "accession" : sections[0],
+                    "file_base" : sections[0] + sample_name
+                }
 
-            if sample_name == "":
-                if name_index >= 0:
-                    sample_name = sections[name_index].strip()
+                samples.append(sample)
 
+    except FileNotFoundError as err:
+        # This could be a bare accession
+        if sample_file.startswith("SRR"):
+            sample_name = ""
+            if not options.nogeo :
+                sample_name = get_geo_name(sample_file, options)
 
-            for bad_char in invalid_characters:
-                sample_name = sample_name.replace(bad_char,"_")
+            if len(sample_name) > 0:
+                sample_name = "_"+sample_name
 
-            # Add a leading underscore to separate it from the accession
-            sample_name = "_"+sample_name
+            samples.append({
+                "accession" : sample_file,
+                "file_base" : sample_file + sample_name
+            })
 
-            # Clean up any runs of underscores
-            while "__" in sample_name:
-                sample_name = sample_name.replace("__","_")
+        else:
+            raise err
 
-            if not options.quiet:
-                print (f"Found sample {sections[0]} with basename {sections[0]}{sample_name}", flush=True)
-
-            sample = {
-                "accession" : sections[0],
-                "file_base" : sections[0] + sample_name
-            }
-
-            samples.append(sample)
-    
     return samples
 
 def read_options():
