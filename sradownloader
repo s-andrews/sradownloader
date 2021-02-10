@@ -79,7 +79,7 @@ def download_sample_ena (sample, options):
         file = url_sections[-1]
         folder = "/".join(url_sections[1:-1])
 
-        print(f"URL is {url} server={server} folder={folder} file={file}")
+        #print(f"URL is {url} server={server} folder={folder} file={file}")
 
         # Work out the output file name.  We're assuming there's never
         # going to be more than 2 files per sample
