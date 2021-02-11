@@ -1,15 +1,36 @@
 #!/usr/bin/env python3
+
+#############################################################################
+#    Copyright 2020 Simon Andrews
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+############################################################################
+
 import urllib.request
 import zlib
 from ftplib import FTP
 import sys
+import argparse
 
 def main():
     # SRR12478073 is a good test
-    accession,skip,sample = sys.argv[1:]
-    url = get_url(accession)
 
-    sample_url(url,int(skip),int(sample))
+    options = read_options()
+    url = get_url(options.accession)
+
+    sample_url(url,options.skip,options.collect)
 
 
 def sample_url(url,skip,sample):
@@ -45,17 +66,25 @@ def collect_gzip_data(skip,collect):
 
         lines = new_data.split("\n")
 
-        for i in range(len(lines)):
-            if newline_count >= 4*skip:
-                print(lines[i],end='')
-                if i < len(lines)-1:
-                    print("\n",end='')
+        # Python ignores sigpipe errors and will generate an exception
+        # if STDOUT is piped to a program such as head which closes the
+        # pipe before all data is written.  To fix this we need to catch
+        # the BrokenPipeException and then just exit gracefully.
 
-            if i < len(lines)-1:
-                newline_count += 1
-            
-            if newline_count >= 4*(skip+collect):
-                sys.exit()
+        try:
+            for i in range(len(lines)):
+                if newline_count >= 4*skip:
+                    print(lines[i],end='')
+                    if i < len(lines)-1:
+                        print("\n",end='')
+
+                if i < len(lines)-1:
+                    newline_count += 1
+                
+                if newline_count >= 4*(skip+collect):
+                    sys.exit()
+        except BrokenPipeError:
+            sys.exit()
 
     return(accept_data)
 
@@ -86,6 +115,17 @@ def get_url(accession):
                 return(url)
 
         raise IOError(f"[ENA] Found no accession in response from ENA REST for accession {sample['accession']}")
+
+def read_options():
+    parser = argparse.ArgumentParser(description="Sample data from an SRR accession")
+
+    parser.add_argument('--skip', type=int, help="Number of reads to skip at the start of the file (default 100,000)", default=100000)
+    parser.add_argument('--collect', type=int, help="Number of reads to report to STDOUT (default 100,000)", default=100000)
+    parser.add_argument('accession', type=str, help="The SRR accession to sample")
+
+    options = parser.parse_args()
+    return options
+
 
 
 
