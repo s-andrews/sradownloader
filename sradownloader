@@ -31,7 +31,7 @@ import shutil
 from ftplib import FTP
 
 
-VERSION = "3.5"
+VERSION = "3.6"
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
@@ -92,6 +92,14 @@ def download_sample_ena (sample, options):
         if options.outdir != ".":
             outfile = f"{options.outdir}/{outfile}"
 
+        # Check if the output file already exists. If it does then don't overwrite
+        # unless --force has been specified
+        if os.path.exists(outfile) and os.path.getsize(outfile) > 0:
+            if not options.force:
+                if not options.quiet:
+                    print (f"Skipping {url} as outfile {outfile} exists (override with --force)", flush=True)
+                continue
+                
         attempt_number = 1
 
         while (attempt_number <= options.retries):
@@ -310,6 +318,7 @@ def read_options():
     parser.add_argument('--outdir', type=str, help="Folder to save data to (default .)", default=".")
     parser.add_argument('--threads', type=int, help="Number of threads (default 1)", default=1)
     parser.add_argument('--retries', type=int, help="Number of times we'll retry a download before giving up (default 5)", default=5)
+    parser.add_argument('--force', type=int, help="Overwrite output files even if they exist", default=False)
     parser.add_argument('--fqdump', type=str, help="Path to the fastq dump program (default fasterq-dump)", default="fasterq-dump")
     parser.add_argument('--nogeo', dest="nogeo", action='store_true', help="Disable sample name lookup from GEO")
     parser.add_argument('--noena', dest="noena", action='store_true', help="Don't try downloading from ENA")
