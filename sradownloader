@@ -31,7 +31,7 @@ import shutil
 from ftplib import FTP
 
 
-VERSION = "3.6"
+VERSION = "3.7"
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
@@ -144,7 +144,10 @@ def download_sample_ncbi (sample, options):
     if not options.quiet:
         print (f"[NCBI] Downloading {sample['accession']} into {sample['file_base']}", flush=True)
 
-    command_options = [options.fqdump,"--split-files","--threads",options.threads,"--outfile",sample["file_base"]+".fastq"]
+
+    # We add the --include-technical because 10X runs mark the essential barcode
+    # reads as technical and don't download them otherwise.
+    command_options = [options.fqdump,"--split-files","--include-technical","--threads",options.threads,"--outfile",sample["file_base"]+".fastq"]
     
     # If they're attached to a terminal and they're not being quiet then we'll show progress
 
