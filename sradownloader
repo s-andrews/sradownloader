@@ -134,7 +134,6 @@ def download_sample_ena (sample, options):
                     t.start()
                     while t.is_alive():
                         t.join(60)
-                        print("Sending NOOP")
                         ftp.voidcmd('NOOP')
                     
                     #print(f"Retrieving {file}")
