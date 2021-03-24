@@ -28,6 +28,7 @@ import glob
 import urllib.request
 import re
 import shutil
+import threading
 from ftplib import FTP
 
 
@@ -113,9 +114,30 @@ def download_sample_ena (sample, options):
                 ftp.login()
                 #print(f"Moving to {folder}")
                 ftp.cwd(folder)
+
+                # We had problems with a simple retbinary causing the control channel to time
+                # out as the transfer took so long so we're going with this more complicated
+                # multithreaded version where we have one thread doing the download and another
+                # sending NOOP commands down the control channel every minute to keep it alive.
+                # Let's see if this fixes things.
+
                 with open(outfile, 'wb') as ftp_out:
+                    sock = ftp.transfercmd('RETR ' + file)
+                    def background():
+                        while True:
+                            block = sock.recv(1024*1024)
+                            if not block:
+                                break
+                            ftp_out.write(block)
+                        sock.close()
+                    t = threading.Thread(target=background)
+                    t.start()
+                    while t.is_alive():
+                        t.join(60)
+                        print("Sending NOOP")
+                        ftp.voidcmd('NOOP')
+                    
                     #print(f"Retrieving {file}")
-                    ftp.retrbinary("RETR "+file,ftp_out.write)
                 
                 ftp.quit()
 
