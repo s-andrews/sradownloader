@@ -9,11 +9,11 @@ Installation
 This script needs to be run on a unix-like operating system (eg Linux).  It requires the presence of python3 on the system it's running on.  Be aware that the data this script downloads can be very large (many tens of gigabytes) so make sure you have enough space to accommodate them.
 
 ### Install the SRA toolkit
-If you want to be able to download from the NCBI database then sradownloader will use the SRA toolkit to actually interact with the SRA so you'll need to install and configure this first.  If you're happy to just get data from ENA (which may not work for a small subset of studies), then you can skip this step.
+SRAdownloader will initially try to download data from ENA, but can also download from NCBI.  If you want to be able to download from the NCBI database then sradownloader will use the SRA toolkit to actually interact with the SRA so you'll need to install and configure this first.  If you're happy to just get data from ENA (which may not work for a small subset of studies), then you can skip this step.
 
-Instructions for installing and configuring the toolkit can be found on their [Github Pages Site](https://ncbi.github.io/sra-tools/install_config.html). 
+Instructions for [downloading](https://github.com/ncbi/sra-tools/wiki/02.-Installing-SRA-Toolkit) and [configuring](https://github.com/ncbi/sra-tools/wiki/03.-Quick-Toolkit-Configuration) the toolkit can be found on their wiki page.
 
-Please note the last part of the installation instructions which say that after installing the toolkit you must run ```vdb-config -i``` to set up the configuration for the toolkit.  You only need to do this once, but nothing will work until you do.
+Please note that after installing the toolkit you must run ```vdb-config -i``` to set up the configuration.  You only need to do this once, but you won't be able to download from NCBI until you do.
 
 ### Download the latest release of sradownloader
 If you have ```git``` installed on your system then the simplest thing to do would be to clone the latest version of sradownloader onto your system.  That way it makes it trivial to update the program in future.  You can clone the software using.
@@ -62,7 +62,7 @@ total 553M
 Downloading your own data
 -------------------------
 
-SRAdownloader is designed to work with files exported from the SRA run selector.  You can get to this tool from the GEO page by clicking on the link at the bottom.
+SRAdownloader is designed to work either with files exported from the SRA run selector or with a simple list of SRR accession codes.  You can get to the run selector tool from the GEO page by clicking on the link at the bottom.
 
 ![GEO link to SRA run selector](https://raw.githubusercontent.com/s-andrews/sradownloader/master/screenshots/geo_selector.png "GEO link to SRA run selector")
 
@@ -70,8 +70,10 @@ Once in the run selector you can either get the data for all samples for that st
 
 ![SRA run selector](https://raw.githubusercontent.com/s-andrews/sradownloader/master/screenshots/sra_selector.png "SRA run selector")
 
-
 Finally you can then run the downloader, passing in the file of metadata as an argument.  You can use the ```--outdir``` option to specify a directory to download into, otherwise the files will come into the current directory.
+
+For simpler uses you can also just use a text file of SRR accession codes (one per line) as input to the tool.  You can also run it with a single SRR accession as the only argument rather than providing a file of accessions.
+
 
 Reporting Problems / Bugs
 -------------------------
