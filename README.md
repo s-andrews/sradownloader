@@ -52,11 +52,13 @@ SRR5413016:     SUCCEEDED
 ```
 $ ls -lh TEST_DOWNLOAD/
 total 553M
--rw-rw-r-- 1 andrews andrews 2.7M Aug 13 16:28 SRR5413015_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_1.fastq.gz
--rw-rw-r-- 1 andrews andrews  68M Aug 13 16:29 SRR5413015_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_2.fastq.gz
+-rw-rw-r-- 1 andrews andrews 216M Aug 13 16:28 SRR5413015_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_1.fastq.gz
+-rw-rw-r-- 1 andrews andrews 219M Aug 13 16:29 SRR5413015_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_2.fastq.gz
 -rw-rw-r-- 1 andrews andrews 209M Aug 13 16:30 SRR5413016_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_1.fastq.gz
 -rw-rw-r-- 1 andrews andrews 211M Aug 13 16:32 SRR5413016_GSM2563533_Spt3_5min_Saccharomyces_cerevisiae_ChIP-Seq_2.fastq.gz
 ```
+
+It's possible that the file sizes of the compressed data might vary a bit on your system due to compression differences but they should be around this size.
 
 
 Downloading your own data
