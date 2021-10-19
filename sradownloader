@@ -32,6 +32,8 @@ import threading
 from ftplib import FTP
 
 
+print("### USING HARDCODED ENA IP UNTIL THEY FIX THEIR BROKEN SERVER ###")
+
 VERSION = "3.8"
 
 # These are the symbols we're going to need to remove
@@ -108,6 +110,8 @@ def download_sample_ena (sample, options):
                 print (f"[ENA Attempt {attempt_number}] Downloading {url} into {outfile}", flush=True)
         
             try:
+                # ENA currently has a bug so we're hardcoding the server for now
+                server = "193.62.193.138"
                 #print(f"Connecting to {server}")
                 ftp = FTP(server)
                 #print(f"Logging in")
