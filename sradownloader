@@ -57,7 +57,7 @@ def download_sample_ena (sample, options):
         for line in response:
             line = line.decode("UTF-8").strip()
             print(line)
-            if line.startswith("SRR"):
+            if line.startswith("SRR") or line.startswith("ERR"):
                 found_accession_line = True
                 sections = line.split("\t")
 
@@ -255,8 +255,8 @@ def read_samples (options):
 
     # The sample_file might be one of three things
     # 1. An SRA RunTable file
-    # 2. A simple file of SRR accessions
-    # 3. An SRR accession (not a file name)
+    # 2. A simple file of SRR/ERR accessions
+    # 3. An SRR/ERR accession (not a file name)
     # 
     # We need to account for all of these
 
@@ -316,7 +316,7 @@ def read_samples (options):
 
     except FileNotFoundError as err:
         # This could be a bare accession
-        if sample_file.startswith("SRR"):
+        if sample_file.startswith("SRR") or sample_file.startswith("ERR"):
             sample_name = ""
             if not options.nogeo :
                 sample_name = get_geo_name(sample_file, options)
