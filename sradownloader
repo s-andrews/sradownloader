@@ -32,7 +32,7 @@ import threading
 from ftplib import FTP
 
 
-VERSION = "3.8"
+VERSION = "3.9"
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
@@ -168,8 +168,9 @@ def download_sample_ncbi (sample, options):
 
     # We add the --include-technical because 10X runs mark the essential barcode
     # reads as technical and don't download them otherwise.
-    command_options = [options.fqdump,"--split-files","--include-technical","--threads",options.threads,"--outfile",sample["file_base"]+".fastq"]
+    command_options = [options.fqdump,"--split-files","--include-technical","--threads",options.threads,"--temp",options.outdir,"--outfile",sample["file_base"]+".fastq"]
     
+
     # If they're attached to a terminal and they're not being quiet then we'll show progress
 
     if not options.quiet:
