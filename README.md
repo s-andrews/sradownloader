@@ -6,7 +6,7 @@ Installation
 ------------
 
 ### System requirements
-This script needs to be run on a unix-like operating system (eg Linux).  It requires the presence of python3 on the system it's running on.  Be aware that the data this script downloads can be very large (many tens of gigabytes) so make sure you have enough space to accommodate them.
+This script needs to be run on a unix-like operating system (eg Linux).  It requires the presence of python3 (>= v3.6) on the system it's running on.  Be aware that the data this script downloads can be very large (many tens of gigabytes) so make sure you have enough space to accommodate them.
 
 ### Install the SRA toolkit
 SRAdownloader will initially try to download data from ENA, but can also download from NCBI.  If you want to be able to download from the NCBI database then sradownloader will use the SRA toolkit to actually interact with the SRA so you'll need to install and configure this first.  If you're happy to just get data from ENA (which may not work for a small subset of studies), then you can skip this step.
