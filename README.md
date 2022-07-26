@@ -76,6 +76,10 @@ Finally you can then run the downloader, passing in the file of metadata as an a
 
 For simpler uses you can also just use a text file of SRR accession codes (one per line) as input to the tool.  You can also run it with a single SRR accession as the only argument rather than providing a file of accessions.
 
+```
+sradownloader SRR5413015
+```
+
 
 Reporting Problems / Bugs
 -------------------------
