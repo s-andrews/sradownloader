@@ -32,11 +32,11 @@ import threading
 from ftplib import FTP
 
 
-VERSION = "3.9"
+VERSION = "3.10"
 
 # These are the symbols we're going to need to remove
 # from any proposed file names
-invalid_characters = [" ","/",">","<","|","\"","?","*","(",")","\\","[","]","{","}","!"]
+invalid_characters = [" ","/",">","<","|","\"","?","*","(",")","\\","[","]","{","}","!","&","#"]
 
 
 def download_sample_ena (sample, options):
