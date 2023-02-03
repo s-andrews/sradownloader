@@ -27,8 +27,9 @@ import argparse
 import glob
 import urllib.request
 import re
-import shutil
+import time
 import threading
+import select
 from ftplib import FTP
 
 
@@ -107,6 +108,16 @@ def download_sample_ena (sample, options):
             if not options.quiet:
                 print (f"[ENA Attempt {attempt_number}] Downloading {url} into {outfile}", flush=True)
         
+            # For subsequent retries we'll add an increasing delay so we
+            # can try to wait past temporary glitches
+            sleep_time = attempt_number**2
+            if sleep_time > 30:
+                sleep_time=30
+
+            if attempt_number > 1:
+                print(f"Sleeping for {sleep_time} seconds before retrying")
+                time.sleep(sleep_time)
+
             try:
                 #print(f"Connecting to {server}")
                 ftp = FTP(server)
@@ -123,12 +134,18 @@ def download_sample_ena (sample, options):
 
                 with open(outfile, 'wb') as ftp_out:
                     sock = ftp.transfercmd('RETR ' + file)
+                    sock.setblocking(0)
                     def background():
                         while True:
-                            block = sock.recv(1024*1024)
-                            if not block:
-                                break
-                            ftp_out.write(block)
+                            ready = select.select([sock],[],[],30)
+                            if ready:
+                                block = sock.recv(1024*1024)
+                                if not block:
+                                    break
+                                ftp_out.write(block)
+                            else:
+                                # It failed to send data and we timed out
+                                raise Exception("No data before timeout")
                         sock.close()
                     t = threading.Thread(target=background)
                     t.start()
