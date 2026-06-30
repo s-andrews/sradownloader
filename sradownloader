@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #############################################################################
-#    Copyright 2020 Simon Andrews
+#    Copyright 2020-2026 Simon Andrews
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -240,7 +240,7 @@ def download_sample_ncbi (sample, options):
         if not options.quiet:
                 print("Compressing "+file, flush=True)
 
-        subprocess.run(["gzip","-4",file], check=True)
+        subprocess.run(["gzip","-f","-4",file], check=True)
 
 
 def get_geo_name (srr_number, options):
